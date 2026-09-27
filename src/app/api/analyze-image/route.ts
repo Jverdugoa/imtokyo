@@ -25,8 +25,14 @@ REGLAS CRÍTICAS PARA ANÁLISIS DE FOTOS REALES (CON FLASH / ILUMINACIÓN DURA /
    - Extrae el nombre del color en español (ej: "Negro", "Blanco", "Beige / Crema", "Azul Marino", "Azul Índigo / Mezclilla", "Gris Carbón", "Camel / Tostado", "Verde Oliva", "Verde Salvia", "Terracota", "Café / Chocolate", "Vino / Burdeos", "Rojo", "Rosa Palo / Nude", "Celeste").
    - Asigna códigos HEX precisos (#HEX) correspondientes a esos colores reales.
 
-2. NOMBRE Y TIPO ESPECÍFICO:
-   - Genera un nombre corto, estilizado y claro en español (ej: "Playera oversize negra lisa", "Blazer estructurado beige", "Jeans rectos azul índigo", "Camisa lino blanco marfil", "Sudadera con capucha gris", "Sneakers de piel blancos").
+2. FOTOS DE ETIQUETAS Y MARCAS (OCR / TAGS):
+   - Si la foto incluye o es directamente la ETIQUETA de la prenda (ej: etiquetado de marca como Levi's, Zara, Nike, etc.):
+     * Lee mediante visión OCR el nombre de la marca y el modelo visible (ej: "Levi's 501", "Levi's 511 Slim Fit", "Nike Sportswear", "Zara Man").
+     * Incluye la marca y el tipo de prenda en el nombre generado (ej: "Jeans Levi's 501 Denim Azul", "Chaqueta Levi's Trucker Denim").
+     * Extrae el material si la etiqueta lo especifica (ej: "100% Algodón / Denim").
+
+3. NOMBRE Y TIPO ESPECÍFICO:
+   - Genera un nombre corto, estilizado y claro en español (ej: "Jeans Levi's 501 Azul Mezclilla", "Playera oversize negra lisa", "Blazer estructurado beige", "Camisa lino blanco marfil", "Sudadera con capucha gris", "Sneakers de piel blancos").
    - Categoría exacta: "top" (superiores), "bottom" (inferiores), "footwear" (calzado), "outerwear" (abrigos/chaquetas/blazers), "accessory" (bolsos/cinturones/gorras), "one_piece" (vestidos/enterizos).
    - Subcategoría: "Playera / Camiseta", "Camisa", "Polo", "Suéter", "Sudadera / Hoodie", "Jeans", "Pantalón sastre", "Cargo", "Shorts", "Falda", "Sneakers", "Botas", "Mocasines", "Blazer", "Trench Coat", "Chaqueta Denim", "Cazadora Cuero", "Bolso", "Cinturón", etc.
 
