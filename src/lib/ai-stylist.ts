@@ -33,7 +33,7 @@ export const AIStylistService = {
 
       if (response.ok) {
         const data = await response.json();
-        if (data && data.category) {
+        if (data && data.category && data.name && !data.name.includes("Prenda IMFTOK")) {
           return data;
         }
       }
@@ -41,7 +41,7 @@ export const AIStylistService = {
       console.warn("API request failed, fallback to local intelligent analyzer", e);
     }
 
-    // Heuristic analysis simulation with real canvas color sampling
+    // Heuristic colorimetry analysis filtering flash highlights
     return simulateLocalImageAnalysis(imageDataUrl);
   },
 
@@ -72,7 +72,6 @@ export const AIStylistService = {
       console.warn("Outfits API failed, using rule-based stylist engine", e);
     }
 
-    // Professional rule-based Stylist Matcher algorithm
     return generateRuleBasedOutfits(params);
   },
 
@@ -104,20 +103,21 @@ export const AIStylistService = {
 };
 
 async function simulateLocalImageAnalysis(imageUrl: string): Promise<AnalyzeResult> {
-  const isOuter = imageUrl.toLowerCase().includes("blazer") || imageUrl.toLowerCase().includes("jacket") || imageUrl.toLowerCase().includes("coat");
-  const isBottom = imageUrl.toLowerCase().includes("pant") || imageUrl.toLowerCase().includes("jean") || imageUrl.toLowerCase().includes("trouser");
-  const isShoe = imageUrl.toLowerCase().includes("shoe") || imageUrl.toLowerCase().includes("sneaker") || imageUrl.toLowerCase().includes("boot");
+  const isOuter = imageUrl.toLowerCase().includes("blazer") || imageUrl.toLowerCase().includes("jacket") || imageUrl.toLowerCase().includes("coat") || imageUrl.toLowerCase().includes("chamarra") || imageUrl.toLowerCase().includes("abrigo");
+  const isBottom = imageUrl.toLowerCase().includes("pant") || imageUrl.toLowerCase().includes("jean") || imageUrl.toLowerCase().includes("trouser") || imageUrl.toLowerCase().includes("falda") || imageUrl.toLowerCase().includes("short");
+  const isShoe = imageUrl.toLowerCase().includes("shoe") || imageUrl.toLowerCase().includes("sneaker") || imageUrl.toLowerCase().includes("boot") || imageUrl.toLowerCase().includes("zapato") || imageUrl.toLowerCase().includes("tenis") || imageUrl.toLowerCase().includes("mocas");
   
-  const extractedHexes = await extractColorsFromCanvas(imageUrl);
-  const dominantHex = extractedHexes[0] || "#DDD4C0";
+  const extracted = await extractColorsFromCanvas(imageUrl);
+  const colorName = extracted.primary || "Negro";
+  const dominantHex = extracted.hex || "#18181B";
 
   if (isOuter) {
     return {
-      name: "Chaqueta / Blazer Estructurado IMFTOK",
+      name: `Blazer / Chaqueta ${colorName.toLowerCase()}`,
       category: "outerwear",
       subcategory: "Blazer",
-      primaryColors: ["Tono Neutro", "Tierra"],
-      colorHexes: [dominantHex, "#27272A"],
+      primaryColors: [colorName],
+      colorHexes: [dominantHex],
       pattern: "Liso / Sólido",
       silhouette: "Corte Regular / Estructurado",
       seasons: ["primavera", "otono", "invierno"],
@@ -129,11 +129,11 @@ async function simulateLocalImageAnalysis(imageUrl: string): Promise<AnalyzeResu
 
   if (isBottom) {
     return {
-      name: "Pantalón / Jeans Corte Recto",
+      name: `Pantalón / Jeans ${colorName.toLowerCase()}`,
       category: "bottom",
       subcategory: "Pantalón de Vestir",
-      primaryColors: ["Oscuro", "Carbón"],
-      colorHexes: [dominantHex, "#18181B"],
+      primaryColors: [colorName],
+      colorHexes: [dominantHex],
       pattern: "Liso / Sólido",
       silhouette: "Tiro Alto / Recto",
       seasons: ["todas"],
@@ -145,32 +145,32 @@ async function simulateLocalImageAnalysis(imageUrl: string): Promise<AnalyzeResu
 
   if (isShoe) {
     return {
-      name: "Calzado Urbano Tokyo",
+      name: `Calzado ${colorName.toLowerCase()}`,
       category: "footwear",
-      subcategory: "Sneakers / Mocasines",
-      primaryColors: ["Blanco / Neutro"],
-      colorHexes: [dominantHex, "#FFFFFF"],
+      subcategory: "Sneakers",
+      primaryColors: [colorName],
+      colorHexes: [dominantHex],
       pattern: "Liso / Sólido",
       silhouette: "Corte Bajo",
       seasons: ["todas"],
       formalityLevel: 2,
       material: "Piel / Cuero",
-      aiTags: ["Cómodo", "Streetwear Tokyo", "Atuendo diario"],
+      aiTags: ["Cómodo", "Streetwear Tokyo", "Diario"],
     };
   }
 
   return {
-    name: "Prenda Superior Esencial",
+    name: `Playera / Prenda Superior ${colorName.toLowerCase()}`,
     category: "top",
-    subcategory: "Camisa / Camiseta",
-    primaryColors: ["Luminoso", "Neutro"],
-    colorHexes: [dominantHex, "#FFFFFF"],
+    subcategory: "Playera / Camiseta",
+    primaryColors: [colorName],
+    colorHexes: [dominantHex],
     pattern: "Liso / Sólido",
     silhouette: "Corte Recto",
     seasons: ["primavera", "verano", "otono", "todas"],
-    formalityLevel: 3,
-    material: "Algodón suave",
-    aiTags: ["IMFTOK Essential", "Fresco", "Luminoso"],
+    formalityLevel: 2,
+    material: "Algodón",
+    aiTags: ["IMFTOK Essential", "Básico", "Versátil"],
   };
 }
 
@@ -197,7 +197,7 @@ function generateRuleBasedOutfits(params: {
   const weatherCold = weather.toLowerCase().includes("frío") || weather.toLowerCase().includes("invierno") || weather.toLowerCase().includes("lluv");
   const formalOccasion = occasion.toLowerCase().includes("oficina") || occasion.toLowerCase().includes("formal") || occasion.toLowerCase().includes("reunión") || occasion.toLowerCase().includes("boda");
 
-  // Option 1: Effortless Balanced Look
+  // Option 1
   const top1 = tops[0];
   const bottom1 = bottoms[0];
   const shoe1 = shoes.length > 0 ? (formalOccasion ? shoes.find((s) => s.formalityLevel >= 3) || shoes[0] : shoes[0]) : undefined;
@@ -234,7 +234,7 @@ function generateRuleBasedOutfits(params: {
     createdAt: new Date().toISOString(),
   });
 
-  // Option 2: Casual Chic Tokyo Layering
+  // Option 2
   if (tops.length > 1 || bottoms.length > 1) {
     const top2 = tops[1] || tops[0];
     const bottom2 = bottoms[1] || bottoms[0];
@@ -267,33 +267,6 @@ function generateRuleBasedOutfits(params: {
     });
   }
 
-  // Option 3: Modern Proportions Look
-  if (bottoms.length > 0 && tops.length > 0) {
-    const top3 = tops[tops.length - 1];
-    const bottom3 = bottoms[bottoms.length - 1];
-    const shoe3 = shoes[0] || undefined;
-    const outer3 = outers[outers.length - 1] || undefined;
-
-    const items3 = [top3, bottom3, shoe3, outer3].filter((x): x is Garment => Boolean(x));
-
-    outfits.push({
-      id: `outfit-${Date.now()}-3`,
-      title: `Contraste Tonal & Silueta Tokyo`,
-      occasion,
-      weather,
-      vibe: "Vanguardista & Cómodo",
-      garmentIds: items3.map((i) => i.id),
-      items: items3,
-      stylistRationale: `Estructura visual de alto contraste que alarga las proporciones, optimizada para el clima ${weather.toLowerCase()}.`,
-      stylingTips: [
-        "Juega con accesorios metálicos sutiles para complementar las prendas monocromáticas.",
-        "Si baja la temperatura, añade una bufanda o abrigo como capa envolvente.",
-      ],
-      colorHarmonyType: "Monocromático Estilizado",
-      createdAt: new Date().toISOString(),
-    });
-  }
-
   return outfits;
 }
 
@@ -308,21 +281,6 @@ function generateLocalChatResponse(params: {
   if (msgLower.includes("hola") || msgLower.includes("buenas") || msgLower.includes("empezar")) {
     return {
       reply: `¡Hola ${profile.name || ""}! Bienvenido a **IMFTOK (Improving My Fashion Tokyo)**. He revisado tus ${garments.length} prendas registradas y tu perfil (${profile.bodyType}, subtono ${profile.skinUndertone === "warm" ? "cálido" : profile.skinUndertone === "cool" ? "frío" : "neutro"}).\n\n¿Para qué ocasión o evento te gustaría planificar tu look hoy? También puedes pedirme recomendaciones para combinar una prenda o qué básicos añadir a tu armario.`,
-    };
-  }
-
-  if (msgLower.includes("falta") || msgLower.includes("básico") || msgLower.includes("comprar")) {
-    const categories = garments.map((g) => g.category);
-    const missing: string[] = [];
-    if (!categories.includes("outerwear")) missing.push("un blazer estructurado o trench coat neutro");
-    if (!categories.includes("footwear")) missing.push("un par de sneakers blancos de piel o mocasines");
-    if (!categories.includes("accessory")) missing.push("un cinturón de cuero y un bolso estructurado");
-    if (garments.filter((g) => g.category === "top").length < 3) missing.push("una camisa de lino o algodón de corte clásico");
-
-    const missingText = missing.length > 0 ? missing.join(", ") : "¡Tu base de armario está muy completa!";
-
-    return {
-      reply: `Analizando tu cápsula IMFTOK:\n\n✨ **Prendas clave recomendadas para potenciar tu armario:**\n${missingText}.\n\nPara tu subtono **${profile.skinUndertone.toUpperCase()}**, busca estas piezas en tonos como ${profile.favoriteColors.slice(0, 3).join(", ") || "arena, marfil o azul marino"}. Recuerda que la clave es la versatilidad de corte y color.`,
     };
   }
 

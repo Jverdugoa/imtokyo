@@ -1,4 +1,5 @@
-# Atelier IA — Asistente de Estilismo Personal & Guardarropa Inteligente
+# IMFTOK — Improving My Fashion Tokyo
+### Asistente de Estilismo Personal & Guardarropa Inteligente v0.2.0
 
 Una aplicación web completa, elegante y moderna lista para desplegar en **Vercel**, diseñada para organizar tu guardarropa mediante fotos, identificar tu colorimetría/complexión y generar combinaciones de ropa (outfits) con la lógica y criterio de un estilista profesional.
 

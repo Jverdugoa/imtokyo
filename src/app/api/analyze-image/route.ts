@@ -16,24 +16,43 @@ export async function POST(req: NextRequest) {
     const mimeType = image.includes("data:") ? image.split(";")[0].replace("data:", "") : "image/jpeg";
 
     const systemInstructions = `Eres un estilista profesional de moda y experto en análisis textil para IMFTOK.
-Analiza con gran precisión la prenda o calzado en la imagen y responde ÚNICAMENTE con un JSON estrictamente estructurado sin código markdown alrededor.
+Tu tarea es analizar la foto de la prenda y extraer sus atributos precisos para catalogarla en el guardarropa.
 
-Estructura obligatoria del JSON:
+REGLAS CRÍTICAS PARA ANÁLISIS DE FOTOS REALES (CON FLASH / ILUMINACIÓN DURA / SOMBRAS):
+1. COLOR REAL DEL TEJIDO:
+   - Ignora el brillo o reflejo blanco del flash de la cámara. Si una prenda negra tiene brillo de flash en el centro, el color es NEGRO, NO blanco ni gris.
+   - Si una prenda azul o verde tiene flash, identifica el color base del tejido (ej: "Azul Marino", "Verde Militar"), no el brillo especular.
+   - Extrae el nombre del color en español (ej: "Negro", "Blanco", "Beige / Crema", "Azul Marino", "Azul Índigo / Mezclilla", "Gris Carbón", "Camel / Tostado", "Verde Oliva", "Verde Salvia", "Terracota", "Café / Chocolate", "Vino / Burdeos", "Rojo", "Rosa Palo / Nude", "Celeste").
+   - Asigna códigos HEX precisos (#HEX) correspondientes a esos colores reales.
+
+2. NOMBRE Y TIPO ESPECÍFICO:
+   - Genera un nombre corto, estilizado y claro en español (ej: "Playera oversize negra lisa", "Blazer estructurado beige", "Jeans rectos azul índigo", "Camisa lino blanco marfil", "Sudadera con capucha gris", "Sneakers de piel blancos").
+   - Categoría exacta: "top" (superiores), "bottom" (inferiores), "footwear" (calzado), "outerwear" (abrigos/chaquetas/blazers), "accessory" (bolsos/cinturones/gorras), "one_piece" (vestidos/enterizos).
+   - Subcategoría: "Playera / Camiseta", "Camisa", "Polo", "Suéter", "Sudadera / Hoodie", "Jeans", "Pantalón sastre", "Cargo", "Shorts", "Falda", "Sneakers", "Botas", "Mocasines", "Blazer", "Trench Coat", "Chaqueta Denim", "Cazadora Cuero", "Bolso", "Cinturón", etc.
+
+3. SILUETA & ESTILO:
+   - Silueta: "Ajustado / Slim", "Corte Recto", "Holgado / Oversized", "Cropped", "Tiro Alto", "Fluido / Suelto".
+   - Formalidad: 1 (Athleisure/Gym), 2 (Casual diario), 3 (Smart Casual / Oficina relajada), 4 (Semiformal / Cóctel), 5 (Formal / Gala).
+   - Estampado: "Liso / Sólido", "Rayas", "Cuadros", "Floral", "Gráfico", "Estampado".
+   - Temporadas: Array con ["primavera", "verano", "otono", "invierno", "todas"].
+   - Tags de estilo: 3-4 etiquetas como ["Básico Esencial", "Streetwear Tokyo", "Minimalista", "Estructurado", "Old Money"].
+
+RESPONDE ÚNICAMENTE CON ESTE OBJETO JSON (SIN BLOQUES DE CÓDIGO MARKDOWN):
 {
-  "name": "Nombre corto, atractivo y específico en español (ej: 'Blazer cruzado beige estructurado', 'Camisa Oxford celeste', 'Jeans rectos azul índigo')",
+  "name": "string",
   "category": "top" | "bottom" | "footwear" | "outerwear" | "accessory" | "one_piece",
-  "subcategory": "ej: Blazer, Camisa, Camiseta, Polo, Suéter, Jeans, Pantalón sastre, Falda, Shorts, Sneakers, Mocasines, Botas, Bolso, Cinturón, Bufanda, etc.",
-  "primaryColors": ["Color principal en español", "Color secundario si aplica"],
+  "subcategory": "string",
+  "primaryColors": ["Color principal", "Color secundario opcional"],
   "colorHexes": ["#HEX1", "#HEX2"],
-  "pattern": "Liso / Sólido" | "Rayas" | "Cuadros" | "Floral" | "Gráfico" | "Estampado",
-  "silhouette": "Ajustado / Slim" | "Corte Recto" | "Holgado / Oversized" | "Cropped" | "Tiro Alto" | "Fluido / Suelto",
+  "pattern": "Liso / Sólido | Rayas | Cuadros | Floral | Gráfico | Estampado",
+  "silhouette": "Ajustado / Slim | Corte Recto | Holgado / Oversized | Cropped | Tiro Alto | Fluido / Suelto",
   "seasons": ["primavera" | "verano" | "otono" | "invierno" | "todas"],
-  "formalityLevel": 1 a 5 (1=Deportivo/Gym, 2=Casual diario, 3=Smart Casual / Oficina, 4=Semiformal / Cóctel, 5=Gala / Formal),
-  "material": "Algodón, Lino, Lana, Denim, Piel, Cuero, Seda, Sintético, etc.",
-  "aiTags": ["3 a 5 palabras clave de estilo como 'Estructurado', 'Básico Esencial', 'Old Money', 'Streetwear', 'Versátil'"]
+  "formalityLevel": 1 a 5,
+  "material": "Algodón, Lino, Lana, Denim, Piel, Cuero, etc.",
+  "aiTags": ["string"]
 }`;
 
-    // 1. Google Gemini 2.0 / 1.5 Flash (Super fast & accurate Vision)
+    // 1. Google Gemini (Gemini 2.0 Flash / Gemini 1.5 Flash)
     if (geminiKey) {
       try {
         const geminiRes = await fetch(
@@ -57,7 +76,7 @@ Estructura obligatoria del JSON:
               ],
               generationConfig: {
                 response_mime_type: "application/json",
-                temperature: 0.15,
+                temperature: 0.1,
               },
             }),
           }
@@ -94,12 +113,12 @@ Estructura obligatoria del JSON:
               {
                 role: "user",
                 content: [
-                  { type: "text", text: "Clasifica y extrae los atributos de estilismo de esta prenda." },
+                  { type: "text", text: "Clasifica y extrae los atributos de estilismo y color de esta prenda." },
                   { type: "image_url", image_url: { url: image.startsWith("data:") ? image : `data:${mimeType};base64,${base64Data}` } },
                 ],
               },
             ],
-            temperature: 0.2,
+            temperature: 0.1,
           }),
         });
 
@@ -116,7 +135,7 @@ Estructura obligatoria del JSON:
       }
     }
 
-    // 3. Groq Llama 3.2 Vision
+    // 3. Groq Vision
     if (groqKey) {
       try {
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -137,7 +156,7 @@ Estructura obligatoria del JSON:
               }
             ],
             response_format: { type: "json_object" },
-            temperature: 0.2,
+            temperature: 0.1,
           })
         });
 
@@ -155,20 +174,20 @@ Estructura obligatoria del JSON:
 
     // Default Fallback
     return NextResponse.json({
-      name: "Prenda de Vestir Analizada",
+      name: "Prenda IMFTOK",
       category: "top",
-      subcategory: "Prenda básica",
-      primaryColors: ["Neutro", "Blanco"],
-      colorHexes: ["#DDD4C0", "#FFFFFF"],
+      subcategory: "Prenda de vestir",
+      primaryColors: ["Neutro"],
+      colorHexes: ["#DDD4C0"],
       pattern: "Liso / Sólido",
       silhouette: "Corte Recto",
       seasons: ["todas"],
       formalityLevel: 3,
-      aiTags: ["Esencial", "IMFTOK Wardrobe", "Versátil"],
+      aiTags: ["IMFTOK", "Básico Esencial"],
     });
   } catch (error) {
-    console.error("Analyze image API general error:", error);
-    return NextResponse.json({ error: "Error en el análisis de imagen" }, { status: 500 });
+    console.error("Analyze image API error:", error);
+    return NextResponse.json({ error: "Error analizando la prenda" }, { status: 500 });
   }
 }
 
@@ -176,26 +195,26 @@ function sanitizeGarmentData(data: any) {
   const validCategories = ["top", "bottom", "footwear", "outerwear", "accessory", "one_piece"];
   let cat = String(data.category || "").toLowerCase();
   if (!validCategories.includes(cat)) {
-    if (cat.includes("shirt") || cat.includes("camisa") || cat.includes("top") || cat.includes("t-shirt") || cat.includes("sueter")) cat = "top";
-    else if (cat.includes("pant") || cat.includes("jean") || cat.includes("trouser") || cat.includes("short") || cat.includes("skirt")) cat = "bottom";
-    else if (cat.includes("shoe") || cat.includes("sneaker") || cat.includes("boot") || cat.includes("zapato") || cat.includes("mocas")) cat = "footwear";
-    else if (cat.includes("coat") || cat.includes("jacket") || cat.includes("blazer") || cat.includes("abrigo") || cat.includes("chaqueta")) cat = "outerwear";
-    else if (cat.includes("bag") || cat.includes("bolso") || cat.includes("belt") || cat.includes("cinturon") || cat.includes("reloj")) cat = "accessory";
-    else if (cat.includes("dress") || cat.includes("vestido")) cat = "one_piece";
+    if (cat.includes("shirt") || cat.includes("camisa") || cat.includes("top") || cat.includes("playera") || cat.includes("sueter") || cat.includes("t-shirt") || cat.includes("sudadera") || cat.includes("hoodie")) cat = "top";
+    else if (cat.includes("pant") || cat.includes("jean") || cat.includes("trouser") || cat.includes("short") || cat.includes("skirt") || cat.includes("falda") || cat.includes("cargo")) cat = "bottom";
+    else if (cat.includes("shoe") || cat.includes("sneaker") || cat.includes("boot") || cat.includes("zapato") || cat.includes("mocas") || cat.includes("tenis") || cat.includes("calzado")) cat = "footwear";
+    else if (cat.includes("coat") || cat.includes("jacket") || cat.includes("blazer") || cat.includes("abrigo") || cat.includes("chaqueta") || cat.includes("chamarra")) cat = "outerwear";
+    else if (cat.includes("bag") || cat.includes("bolso") || cat.includes("belt") || cat.includes("cinturon") || cat.includes("reloj") || cat.includes("gorra") || cat.includes("lentes")) cat = "accessory";
+    else if (cat.includes("dress") || cat.includes("vestido") || cat.includes("enterizo") || cat.includes("mono")) cat = "one_piece";
     else cat = "top";
   }
 
   return {
     name: data.name || "Prenda Registrada",
     category: cat,
-    subcategory: data.subcategory || "Prenda de vestir",
+    subcategory: data.subcategory || "Prenda",
     primaryColors: Array.isArray(data.primaryColors) && data.primaryColors.length > 0 ? data.primaryColors : ["Neutro"],
     colorHexes: Array.isArray(data.colorHexes) && data.colorHexes.length > 0 ? data.colorHexes : ["#DDD4C0"],
     pattern: data.pattern || "Liso / Sólido",
     silhouette: data.silhouette || "Corte Recto",
     seasons: Array.isArray(data.seasons) && data.seasons.length > 0 ? data.seasons : ["todas"],
     formalityLevel: typeof data.formalityLevel === "number" ? Math.min(5, Math.max(1, data.formalityLevel)) : 3,
-    material: data.material || "Textil de calidad",
-    aiTags: Array.isArray(data.aiTags) ? data.aiTags : ["Escaneado IMFTOK", "Estilo Tokio"],
+    material: data.material || "Textil",
+    aiTags: Array.isArray(data.aiTags) ? data.aiTags : ["IMFTOK Wardrobe"],
   };
 }
